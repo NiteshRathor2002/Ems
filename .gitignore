@@ -1,0 +1,10 @@
+﻿/vendor/
+/node_modules/
+/.idea/
+/.vscode/
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+/public/uploads/profiles/*
+!/public/uploads/profiles/.gitkeep

@@ -1,0 +1,11 @@
+﻿{
+  "name": "local/ems-core-php",
+  "description": "Employee Management System using Core PHP OOP + AJAX + MySQL",
+  "type": "project",
+  "autoload": {
+    "psr-4": {
+      "App\\": "app/"
+    }
+  },
+  "require": {}
+}

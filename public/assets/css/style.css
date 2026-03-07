@@ -1,0 +1,67 @@
+﻿:root {
+    --bg: #f4f6fb;
+    --card: #ffffff;
+    --text: #13233a;
+    --muted: #5f6f87;
+    --accent: #0c7d69;
+    --accent-2: #094f43;
+    --border: #d9e1ef;
+}
+
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    background: linear-gradient(120deg, #f6fafc, #eef2ff);
+    color: var(--text);
+}
+.container { width: min(1100px, 92%); margin: 0 auto; }
+.topbar { background: #0f1b2e; color: #fff; }
+.topbar-inner { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; gap: 16px; }
+.brand { color: #fff; text-decoration: none; font-weight: 700; }
+nav { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+nav a, nav button { color: #fff; background: transparent; border: none; text-decoration: none; cursor: pointer; font-size: 14px; }
+.inline-form { display: inline; }
+.main-content { padding: 24px 0 40px; }
+.card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: 0 8px 26px rgba(15, 26, 45, 0.08);
+    padding: 22px;
+}
+.card.small { max-width: 520px; margin: 0 auto; }
+h1, h3 { margin-top: 0; }
+label { display: block; margin-bottom: 10px; font-size: 14px; }
+input, select, button {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #c8d3e6;
+    border-radius: 8px;
+    margin-top: 6px;
+}
+button {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+}
+button:hover { background: var(--accent-2); }
+.grid.two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.dynamic-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; margin-bottom: 10px; }
+.btn-secondary { width: 46px; padding: 0; font-size: 20px; line-height: 1; }
+.message { min-height: 20px; margin: 10px 0 0; color: #ad1a1a; }
+.message.success { color: #0b7d39; }
+.muted { color: var(--muted); }
+.avatar { width: 120px; height: 120px; object-fit: cover; border-radius: 10px; border: 1px solid var(--border); margin: 6px 0 14px; }
+.avatar.small { width: 46px; height: 46px; border-radius: 50%; }
+.table-wrap { overflow: auto; }
+table { width: 100%; border-collapse: collapse; min-width: 900px; }
+th, td { border: 1px solid var(--border); padding: 10px; text-align: left; font-size: 14px; }
+th { background: #f2f7fd; }
+
+@media (max-width: 760px) {
+    .grid.two { grid-template-columns: 1fr; }
+    .topbar-inner { flex-direction: column; align-items: flex-start; }
+}
