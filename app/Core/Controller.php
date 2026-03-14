@@ -10,12 +10,26 @@ abstract class Controller
     {
     }
 
-    protected function render(string $view, array $data = []): void
+    protected function render(string $view, array $data = [], string $layout = 'default'): void
     {
         extract($data);
         $config = $this->config;
-        require __DIR__ . '/../Views/layout/header.php';
+
+        $layoutHeader = __DIR__ . '/../Views/layout/header.php';
+        $layoutFooter = __DIR__ . '/../Views/layout/footer.php';
+        if ($layout === 'admin') {
+            $layoutHeader = __DIR__ . '/../Views/layout/admin_header.php';
+            $layoutFooter = __DIR__ . '/../Views/layout/admin_footer.php';
+        }
+
+        require $layoutHeader;
         require __DIR__ . '/../Views/' . $view . '.php';
-        require __DIR__ . '/../Views/layout/footer.php';
+        require $layoutFooter;
+    }
+
+    protected function basePath(): string
+    {
+        $base = (string) ($this->config['base_path'] ?? '');
+        return $base !== '' ? $base : (parse_url((string) ($this->config['app_url'] ?? ''), PHP_URL_PATH) ?: '');
     }
 }

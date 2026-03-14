@@ -1,4 +1,4 @@
-﻿CREATE DATABASE IF NOT EXISTS ems_core_php CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS ems_core_php CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE ems_core_php;
 
 CREATE TABLE IF NOT EXISTS users (
@@ -40,6 +40,9 @@ CREATE TABLE IF NOT EXISTS user_experiences (
     CONSTRAINT fk_experience_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- Default Admin
+-- Email: admin@ems.local
+-- Password: Admin@123
 INSERT INTO users (
     full_name, email, password_hash, age,
     perm_line1, perm_line2, perm_city, perm_state,
@@ -48,14 +51,11 @@ INSERT INTO users (
 ) VALUES (
     'System Admin',
     'admin@ems.local',
-    '$2y$10$HOQoLLvtfBOkrc0ZuvSTa.u2b5zywe3xtLwIyNjdbCSdeIGHK7/cK',
+    '$2y$10$eWm8iuIc0cMAPxYGF8vb4eXAtbHEV7fY7VXD3n91ehFEstAiodiBq',
     30,
-    'Admin Street 1', '', 'Jaipur', 'Rajasthan',
+    'Admin Street 1', '', 'Ghaziabad', 'Uttar Pradesh',
     'Admin Street 1', '', 'Jaipur', 'Rajasthan',
     NULL,
     1
 )
 ON DUPLICATE KEY UPDATE email = email;
-
--- Default admin password: Admin@123
-

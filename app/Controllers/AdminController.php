@@ -8,6 +8,7 @@ use App\Core\Auth;
 use App\Core\Controller;
 use App\Core\Csrf;
 use App\Core\Response;
+use App\Core\Session;
 use App\Core\Validator;
 use App\Models\User;
 
@@ -16,7 +17,7 @@ class AdminController extends Controller
     public function loginPage(): void
     {
         if (Auth::check() && Auth::isAdmin()) {
-            Response::redirect('/Ems/public/admin/employees');
+            Response::redirect((string) ($this->config['base_path'] ?? '/Ems/public') . '/admin/dashboard');
         }
 
         $this->render('admin/login', ['title' => 'Admin Login']);
@@ -41,17 +42,8 @@ class AdminController extends Controller
         }
 
         Auth::login((int) $user['id'], true);
-        Response::json(['ok' => true, 'redirect' => '/Ems/public/admin/employees']);
-    }
-
-    public function employees(): void
-    {
-        if (!Auth::check() || !Auth::isAdmin()) {
-            Response::redirect('/Ems/public/admin/login');
-        }
-
-        $employees = (new User($this->config))->allEmployees();
-        $this->render('admin/employees', ['title' => 'Employees', 'employees' => $employees]);
+        Session::set('user_name', (string) ($user['full_name'] ?? 'Admin'));
+        Response::json(['ok' => true, 'redirect' => (string) ($this->config['base_path'] ?? '/Ems/public') . '/admin/dashboard']);
     }
 
     public function logout(): void
@@ -59,6 +51,6 @@ class AdminController extends Controller
         if (Csrf::verify($_POST['_csrf'] ?? null)) {
             Auth::logout();
         }
-        Response::redirect('/Ems/public/admin/login');
+        Response::redirect((string) ($this->config['base_path'] ?? '/Ems/public') . '/admin/login');
     }
 }

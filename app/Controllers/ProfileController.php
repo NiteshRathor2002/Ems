@@ -18,14 +18,14 @@ class ProfileController extends Controller
     public function page(): void
     {
         if (!Auth::check()) {
-            Response::redirect('/Ems/public/login');
+            Response::redirect((string) ($this->config['base_path'] ?? '/Ems/public') . '/login');
         }
 
         $userId = Auth::userId();
         $user = (new User($this->config))->findById((int) $userId);
         if (!$user) {
             Auth::logout();
-            Response::redirect('/Ems/public/login');
+            Response::redirect((string) ($this->config['base_path'] ?? '/Ems/public') . '/login');
         }
 
         $qualifications = (new Qualification($this->config))->forUser((int) $userId);

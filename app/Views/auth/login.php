@@ -1,15 +1,27 @@
 <?php use App\Core\Csrf; ?>
-<section class="card small">
-    <h1>User Login</h1>
-    <form id="loginForm" autocomplete="off">
-        <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>">
-        <label>Email
-            <input type="email" name="email" required>
-        </label>
-        <label>Password
-            <input type="password" name="password" required>
-        </label>
-        <button type="submit">Login</button>
-        <p id="loginMessage" class="message"></p>
-    </form>
-</section>
+<div class="row justify-content-center">
+    <div class="col-12 col-md-7 col-lg-5">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h1 class="h4 mb-3">User Login</h1>
+                <form id="loginForm" autocomplete="off" class="needs-validation" novalidate>
+                    <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>">
+
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input class="form-control" type="email" name="email" required>
+                        <div class="invalid-feedback">Please enter a valid email.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <input class="form-control" type="password" name="password" required>
+                        <div class="invalid-feedback">Password is required.</div>
+                    </div>
+
+                    <button class="btn btn-dark w-100" type="submit">Login</button>
+                    <div id="loginMessage" class="form-text mt-2"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

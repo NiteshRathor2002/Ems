@@ -42,6 +42,24 @@ class Session
         unset($_SESSION[$key]);
     }
 
+    public static function flash(string $key, mixed $value = null): mixed
+    {
+        $flashKey = '__flash__' . $key;
+
+        if (func_num_args() === 2) {
+            $_SESSION[$flashKey] = $value;
+            return null;
+        }
+
+        if (!array_key_exists($flashKey, $_SESSION)) {
+            return null;
+        }
+
+        $val = $_SESSION[$flashKey];
+        unset($_SESSION[$flashKey]);
+        return $val;
+    }
+
     public static function destroy(): void
     {
         $_SESSION = [];

@@ -44,12 +44,31 @@ class User
         return $row ?: null;
     }
 
+    public function emailExists(string $email, ?int $excludeId = null): bool
+    {
+        if ($excludeId !== null) {
+            $stmt = $this->db->prepare('SELECT 1 FROM users WHERE email = :email AND id <> :id LIMIT 1');
+            $stmt->execute(['email' => $email, 'id' => $excludeId]);
+            return (bool) $stmt->fetchColumn();
+        }
+
+        $stmt = $this->db->prepare('SELECT 1 FROM users WHERE email = :email LIMIT 1');
+        $stmt->execute(['email' => $email]);
+        return (bool) $stmt->fetchColumn();
+    }
+
     public function findById(int $id): ?array
     {
         $stmt = $this->db->prepare('SELECT * FROM users WHERE id = :id LIMIT 1');
         $stmt->execute(['id' => $id]);
         $row = $stmt->fetch();
         return $row ?: null;
+    }
+
+    public function updatePassword(int $id, string $passwordHash): void
+    {
+        $stmt = $this->db->prepare('UPDATE users SET password_hash = :password_hash WHERE id = :id');
+        $stmt->execute(['id' => $id, 'password_hash' => $passwordHash]);
     }
 
     public function updateProfile(int $userId, array $data): void
@@ -76,6 +95,107 @@ class User
     public function allEmployees(): array
     {
         $stmt = $this->db->query('SELECT id, full_name, email, age, perm_city, perm_state, curr_city, curr_state, profile_picture, created_at FROM users WHERE is_admin = 0 ORDER BY id DESC');
+        return $stmt->fetchAll();
+    }
+
+    public function findEmployeeById(int $id): ?array
+    {
+        $stmt = $this->db->prepare('SELECT * FROM users WHERE id = :id AND is_admin = 0 LIMIT 1');
+        $stmt->execute(['id' => $id]);
+        $row = $stmt->fetch();
+        return $row ?: null;
+    }
+
+    public function createEmployee(array $data): int
+    {
+        $data['is_admin'] = 0;
+        $sql = 'INSERT INTO users (
+            full_name, email, password_hash, age,
+            perm_line1, perm_line2, perm_city, perm_state,
+            curr_line1, curr_line2, curr_city, curr_state,
+            profile_picture, is_admin
+        ) VALUES (
+            :full_name, :email, :password_hash, :age,
+            :perm_line1, :perm_line2, :perm_city, :perm_state,
+            :curr_line1, :curr_line2, :curr_city, :curr_state,
+            :profile_picture, :is_admin
+        )';
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($data);
+
+        return (int) $this->db->lastInsertId();
+    }
+
+    public function updateEmployee(int $id, array $data): void
+    {
+        $data['id'] = $id;
+        $sql = 'UPDATE users SET
+            full_name = :full_name,
+            email = :email,
+            password_hash = :password_hash,
+            age = :age,
+            perm_line1 = :perm_line1,
+            perm_line2 = :perm_line2,
+            perm_city = :perm_city,
+            perm_state = :perm_state,
+            curr_line1 = :curr_line1,
+            curr_line2 = :curr_line2,
+            curr_city = :curr_city,
+            curr_state = :curr_state,
+            profile_picture = :profile_picture
+        WHERE id = :id AND is_admin = 0';
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($data);
+    }
+
+    public function deleteEmployee(int $id): void
+    {
+        $stmt = $this->db->prepare('DELETE FROM users WHERE id = :id AND is_admin = 0');
+        $stmt->execute(['id' => $id]);
+    }
+
+    public function countEmployees(): int
+    {
+        $stmt = $this->db->query('SELECT COUNT(*) AS c FROM users WHERE is_admin = 0');
+        $row = $stmt->fetch();
+        return (int) ($row['c'] ?? 0);
+    }
+
+    public function countEmployeesSince(string $since): int
+    {
+        $stmt = $this->db->prepare('SELECT COUNT(*) AS c FROM users WHERE is_admin = 0 AND created_at >= :since');
+        $stmt->execute(['since' => $since]);
+        $row = $stmt->fetch();
+        return (int) ($row['c'] ?? 0);
+    }
+
+    public function recentEmployees(int $limit = 5): array
+    {
+        $limit = max(1, min(50, $limit));
+        $stmt = $this->db->prepare('SELECT id, full_name, email, age, profile_picture, created_at FROM users WHERE is_admin = 0 ORDER BY id DESC LIMIT ' . $limit);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    public function searchEmployees(?string $query, int $limit = 200): array
+    {
+        $limit = max(1, min(500, $limit));
+        $query = trim((string) $query);
+        if ($query === '') {
+            $stmt = $this->db->prepare('SELECT id, full_name, email, age, perm_city, perm_state, curr_city, curr_state, profile_picture, created_at FROM users WHERE is_admin = 0 ORDER BY id DESC LIMIT ' . $limit);
+            $stmt->execute();
+            return $stmt->fetchAll();
+        }
+
+        $like = '%' . $query . '%';
+        $stmt = $this->db->prepare('SELECT id, full_name, email, age, perm_city, perm_state, curr_city, curr_state, profile_picture, created_at FROM users WHERE is_admin = 0 AND (full_name LIKE :q_name OR email LIKE :q_email OR CAST(id AS CHAR) = :q_id) ORDER BY id DESC LIMIT ' . $limit);
+        $stmt->execute([
+            'q_name' => $like,
+            'q_email' => $like,
+            'q_id' => $query,
+        ]);
         return $stmt->fetchAll();
     }
 }

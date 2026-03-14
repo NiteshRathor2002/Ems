@@ -8,6 +8,7 @@ use App\Core\Auth;
 use App\Core\Controller;
 use App\Core\Csrf;
 use App\Core\Response;
+use App\Core\Session;
 use App\Core\Validator;
 use App\Models\Experience;
 use App\Models\Qualification;
@@ -18,7 +19,7 @@ class AuthController extends Controller
     public function signupPage(): void
     {
         if (Auth::check()) {
-            Response::redirect('/Ems/public/profile');
+            Response::redirect((string) ($this->config['base_path'] ?? '/Ems/public') . '/profile');
         }
         $this->render('auth/signup', ['title' => 'Sign Up']);
     }
@@ -26,7 +27,7 @@ class AuthController extends Controller
     public function loginPage(): void
     {
         if (Auth::check()) {
-            Response::redirect('/Ems/public/profile');
+            Response::redirect((string) ($this->config['base_path'] ?? '/Ems/public') . '/profile');
         }
         $this->render('auth/login', ['title' => 'Login']);
     }
@@ -92,7 +93,7 @@ class AuthController extends Controller
         $userId = $userModel->create([
             'full_name' => $fullName,
             'email' => $email,
-            'password_hash' => password_hash($password, PASSWORD_BCRYPT),
+            'password_hash' => password_hash($password, PASSWORD_DEFAULT),
             'age' => (int) $age,
             'perm_line1' => $payload['perm_line1'],
             'perm_line2' => $payload['perm_line2'],
@@ -109,8 +110,9 @@ class AuthController extends Controller
         (new Experience($this->config))->saveMany($userId, $experiences);
 
         Auth::login($userId);
+        Session::set('user_name', $fullName);
 
-        Response::json(['ok' => true, 'message' => 'Signup successful', 'redirect' => '/Ems/public/profile']);
+        Response::json(['ok' => true, 'message' => 'Signup successful', 'redirect' => (string) ($this->config['base_path'] ?? '/Ems/public') . '/profile']);
     }
 
     public function login(): void
@@ -132,16 +134,17 @@ class AuthController extends Controller
         }
 
         Auth::login((int) $user['id'], (bool) $user['is_admin']);
-        Response::json(['ok' => true, 'message' => 'Login successful', 'redirect' => '/Ems/public/profile']);
+        Session::set('user_name', (string) ($user['full_name'] ?? 'User'));
+        Response::json(['ok' => true, 'message' => 'Login successful', 'redirect' => (string) ($this->config['base_path'] ?? '/Ems/public') . '/profile']);
     }
 
     public function logout(): void
     {
         if (!Csrf::verify($_POST['_csrf'] ?? null)) {
-            Response::redirect('/Ems/public/login');
+            Response::redirect((string) ($this->config['base_path'] ?? '/Ems/public') . '/login');
         }
         Auth::logout();
-        Response::redirect('/Ems/public/login');
+        Response::redirect((string) ($this->config['base_path'] ?? '/Ems/public') . '/login');
     }
 
     private function handleProfileUpload(?string $currentFile = null): ?string

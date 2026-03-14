@@ -12,10 +12,15 @@ class HomeController extends Controller
 {
     public function index(): void
     {
+        $base = (string) ($this->config['base_path'] ?? '/Ems/public');
+
         if (Auth::check()) {
-            Response::redirect('/Ems/public/profile');
+            if (Auth::isAdmin()) {
+                Response::redirect($base . '/admin/dashboard');
+            }
+            Response::redirect($base . '/profile');
         }
 
-        Response::redirect('/Ems/public/login');
+        Response::redirect($base . '/login');
     }
 }

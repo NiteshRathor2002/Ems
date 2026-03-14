@@ -1,6 +1,7 @@
 <?php
 return [
     'app_url' => 'http://localhost/Ems/public',
+    'base_path' => '/Ems/public',
     'db' => [
         'host' => '127.0.0.1',
         'port' => '3306',
@@ -13,8 +14,8 @@ return [
         'name' => 'ems_session',
     ],
     'upload' => [
-        'profile_dir' => __DIR__ . '/../public/uploads/profiles',
-        'profile_web_path' => '/uploads/profiles/',
+        'profile_dir' => __DIR__ . '/../storage/uploads/profiles',
+        'profile_web_path' => '/files/profile/',
         'max_size' => 2 * 1024 * 1024,
         'allowed_mime' => [
             'image/jpeg' => 'jpg',
