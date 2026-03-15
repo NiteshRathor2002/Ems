@@ -6,6 +6,13 @@ $uploadPath = (string) (($config['upload']['profile_web_path'] ?? '/files/profil
 $totalEmployees = (int) ($totalEmployees ?? 0);
 $newEmployees = (int) ($newEmployees ?? 0);
 $resultCount = is_array($employees ?? null) ? count($employees) : 0;
+$page = max(1, (int) ($page ?? 1));
+$perPage = max(1, (int) ($perPage ?? 5));
+$filteredTotal = (int) ($filteredTotal ?? $resultCount);
+$totalPages = max(1, (int) ($totalPages ?? 1));
+$from = $filteredTotal === 0 ? 0 : (($page - 1) * $perPage) + 1;
+$to = $filteredTotal === 0 ? 0 : min($filteredTotal, (($page - 1) * $perPage) + $resultCount);
+$employeesUrl = htmlspecialchars($base, ENT_QUOTES, 'UTF-8') . '/admin/employees';
 ?>
 <div class="card shadow-sm border-0 mb-3">
     <div class="card-body d-flex flex-wrap align-items-center justify-content-between gap-2">
@@ -43,7 +50,7 @@ $resultCount = is_array($employees ?? null) ? count($employees) : 0;
             <div class="card-body">
                 <div class="ems-stat-icon"><i class="bi bi-funnel"></i></div>
                 <div class="small opacity-75">Showing</div>
-                <div class="display-6 fw-semibold mb-0"><?= $resultCount ?></div>
+                <div class="display-6 fw-semibold mb-0"><?= $filteredTotal === 0 ? 0 : htmlspecialchars($from . '-' . $to, ENT_QUOTES, 'UTF-8') ?></div>
             </div>
         </div>
     </div>
@@ -81,6 +88,7 @@ $resultCount = is_array($employees ?? null) ? count($employees) : 0;
                         <th style="width: 70px;">ID</th>
                         <th style="width: 70px;">Photo</th>
                         <th>Name</th>
+                        <th>Department</th>
                         <th>Email</th>
                         <th style="width: 80px;">Age</th>
                         <th>Permanent</th>
@@ -90,7 +98,7 @@ $resultCount = is_array($employees ?? null) ? count($employees) : 0;
                 </thead>
                 <tbody>
                     <?php if (empty($employees)): ?>
-                        <tr><td colspan="8" class="text-muted">No employees found.</td></tr>
+                        <tr><td colspan="9" class="text-muted">No employees found.</td></tr>
                     <?php else: ?>
                         <?php foreach ($employees as $emp): ?>
                             <tr>
@@ -105,6 +113,7 @@ $resultCount = is_array($employees ?? null) ? count($employees) : 0;
                                     <?php endif; ?>
                                 </td>
                                 <td><?= htmlspecialchars($emp['full_name'], ENT_QUOTES, 'UTF-8') ?></td>
+                                <td><?= htmlspecialchars((string) ($emp['department'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
                                 <td><?= htmlspecialchars($emp['email'], ENT_QUOTES, 'UTF-8') ?></td>
                                 <td><?= (int) $emp['age'] ?></td>
                                 <td><?= htmlspecialchars($emp['perm_city'] . ', ' . $emp['perm_state'], ENT_QUOTES, 'UTF-8') ?></td>
@@ -125,5 +134,52 @@ $resultCount = is_array($employees ?? null) ? count($employees) : 0;
                 </tbody>
             </table>
         </div>
+
+        <?php if ($totalPages > 1): ?>
+            <?php
+            $qs = [];
+            if (trim((string) ($q ?? '')) !== '') {
+                $qs['q'] = (string) $q;
+            }
+            $linkFor = static function (int $p) use ($employeesUrl, $qs): string {
+                $qs2 = $qs;
+                $qs2['page'] = $p;
+                return $employeesUrl . '?' . htmlspecialchars(http_build_query($qs2), ENT_QUOTES, 'UTF-8');
+            };
+            $start = max(1, $page - 2);
+            $end = min($totalPages, $page + 2);
+            ?>
+            <nav class="mt-3" aria-label="Employee pagination">
+                <ul class="pagination justify-content-end mb-0">
+                    <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
+                        <a class="page-link" href="<?= $linkFor(max(1, $page - 1)) ?>" tabindex="<?= $page <= 1 ? '-1' : '0' ?>">Prev</a>
+                    </li>
+
+                    <?php if ($start > 1): ?>
+                        <li class="page-item"><a class="page-link" href="<?= $linkFor(1) ?>">1</a></li>
+                        <?php if ($start > 2): ?>
+                            <li class="page-item disabled"><span class="page-link">…</span></li>
+                        <?php endif; ?>
+                    <?php endif; ?>
+
+                    <?php for ($p = $start; $p <= $end; $p++): ?>
+                        <li class="page-item <?= $p === $page ? 'active' : '' ?>">
+                            <a class="page-link" href="<?= $linkFor($p) ?>"><?= (int) $p ?></a>
+                        </li>
+                    <?php endfor; ?>
+
+                    <?php if ($end < $totalPages): ?>
+                        <?php if ($end < $totalPages - 1): ?>
+                            <li class="page-item disabled"><span class="page-link">…</span></li>
+                        <?php endif; ?>
+                        <li class="page-item"><a class="page-link" href="<?= $linkFor($totalPages) ?>"><?= (int) $totalPages ?></a></li>
+                    <?php endif; ?>
+
+                    <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
+                        <a class="page-link" href="<?= $linkFor(min($totalPages, $page + 1)) ?>" tabindex="<?= $page >= $totalPages ? '-1' : '0' ?>">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        <?php endif; ?>
     </div>
 </div>

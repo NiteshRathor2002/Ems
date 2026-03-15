@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(190) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     age TINYINT UNSIGNED NOT NULL,
+    department VARCHAR(120) NULL,
 
     perm_line1 VARCHAR(150) NOT NULL,
     perm_line2 VARCHAR(150) NULL,
@@ -38,6 +39,25 @@ CREATE TABLE IF NOT EXISTS user_experiences (
     experience VARCHAR(200) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_experience_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS leave_requests (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    reason VARCHAR(500) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'pending',
+    decided_by INT UNSIGNED NULL,
+    decided_at TIMESTAMP NULL DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_leave_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_leave_decided_by FOREIGN KEY (decided_by) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_leave_user (user_id),
+    INDEX idx_leave_status (status),
+    INDEX idx_leave_start (start_date),
+    INDEX idx_leave_end (end_date)
 );
 
 -- Default Admin

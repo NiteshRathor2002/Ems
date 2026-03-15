@@ -39,15 +39,19 @@ $employeeId = (int) ($employee['id'] ?? 0);
                 </div>
 
                 <div class="row g-3">
-                    <div class="col-12 col-md-4">
+                    <div class="col-12 col-md-3">
                         <div class="text-muted small">Age</div>
                         <div class="fw-semibold"><?= (int) ($employee['age'] ?? 0) ?></div>
                     </div>
-                    <div class="col-12 col-md-4">
+                    <div class="col-12 col-md-3">
+                        <div class="text-muted small">Department</div>
+                        <div class="fw-semibold"><?= htmlspecialchars((string) ($employee['department'] ?? ''), ENT_QUOTES, 'UTF-8') ?></div>
+                    </div>
+                    <div class="col-12 col-md-3">
                         <div class="text-muted small">Created</div>
                         <div class="fw-semibold"><?= htmlspecialchars((string) ($employee['created_at'] ?? ''), ENT_QUOTES, 'UTF-8') ?></div>
                     </div>
-                    <div class="col-12 col-md-4">
+                    <div class="col-12 col-md-3">
                         <div class="text-muted small">Updated</div>
                         <div class="fw-semibold"><?= htmlspecialchars((string) ($employee['updated_at'] ?? ''), ENT_QUOTES, 'UTF-8') ?></div>
                     </div>

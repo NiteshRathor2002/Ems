@@ -27,11 +27,21 @@ class EmployeeController extends Controller
         }
 
         $q = (string) ($_GET['q'] ?? '');
+        $page = max(1, (int) ($_GET['page'] ?? 1));
+        $perPage = 5;
         $userModel = new User($this->config);
 
         $totalEmployees = $userModel->countEmployees();
         $newEmployees7d = $userModel->countEmployeesSince(date('Y-m-d H:i:s', strtotime('-7 days')));
-        $employees = $userModel->searchEmployees($q, 250);
+
+        $filteredTotal = $userModel->countEmployeesMatching($q);
+        $totalPages = max(1, (int) ceil($filteredTotal / $perPage));
+        if ($page > $totalPages) {
+            $page = $totalPages;
+        }
+
+        $offset = ($page - 1) * $perPage;
+        $employees = $userModel->searchEmployeesPage($q, $perPage, $offset);
 
         $this->render('admin/employees', [
             'title' => 'Employee',
@@ -39,6 +49,10 @@ class EmployeeController extends Controller
             'q' => $q,
             'totalEmployees' => $totalEmployees,
             'newEmployees' => $newEmployees7d,
+            'filteredTotal' => $filteredTotal,
+            'page' => $page,
+            'perPage' => $perPage,
+            'totalPages' => $totalPages,
         ], 'admin');
     }
 
@@ -67,16 +81,24 @@ class EmployeeController extends Controller
             Response::redirect($base . '/admin/employees/create');
         }
 
+        $userModel = new User($this->config);
+        if (!$userModel->departmentFeatureReady()) {
+            Session::flash('error', "Database update required: add 'department' column to users table.");
+            Response::redirect($base . '/admin/employees/create');
+        }
+
         $fullName = trim($_POST['full_name'] ?? '');
         $email = strtolower(trim($_POST['email'] ?? ''));
         $password = (string) ($_POST['password'] ?? '');
         $age = $_POST['age'] ?? null;
+        $department = trim($_POST['department'] ?? '');
 
         $payload = [
             'full_name' => $fullName,
             'email' => $email,
             'password_hash' => '',
             'age' => (int) $age,
+            'department' => $department !== '' ? $department : null,
             'perm_line1' => trim($_POST['perm_line1'] ?? ''),
             'perm_line2' => trim($_POST['perm_line2'] ?? ''),
             'perm_city' => trim($_POST['perm_city'] ?? ''),
@@ -108,6 +130,10 @@ class EmployeeController extends Controller
             Session::flash('error', 'Age must be between 18 and 80.');
             Response::redirect($base . '/admin/employees/create');
         }
+        if (!Validator::required($department) || !Validator::safeText($department, 120)) {
+            Session::flash('error', 'Valid department is required.');
+            Response::redirect($base . '/admin/employees/create');
+        }
         foreach (['perm_line1','perm_city','perm_state','curr_line1','curr_city','curr_state'] as $requiredKey) {
             if (!Validator::required((string) $payload[$requiredKey])) {
                 Session::flash('error', 'Please fill all required address fields.');
@@ -137,7 +163,6 @@ class EmployeeController extends Controller
             Response::redirect($base . '/admin/employees/create');
         }
 
-        $userModel = new User($this->config);
         if ($userModel->emailExists($email)) {
             Session::flash('error', 'Email already exists.');
             Response::redirect($base . '/admin/employees/create');
@@ -205,6 +230,10 @@ class EmployeeController extends Controller
 
         $employeeId = (int) $id;
         $userModel = new User($this->config);
+        if (!$userModel->departmentFeatureReady()) {
+            Session::flash('error', "Database update required: add 'department' column to users table.");
+            Response::redirect($base . '/admin/employees/edit/' . $employeeId);
+        }
         $existing = $userModel->findEmployeeById($employeeId);
         if (!$existing) {
             Session::flash('error', 'Employee not found.');
@@ -215,6 +244,7 @@ class EmployeeController extends Controller
         $email = strtolower(trim($_POST['email'] ?? ''));
         $password = (string) ($_POST['password'] ?? '');
         $age = $_POST['age'] ?? null;
+        $department = trim($_POST['department'] ?? '');
 
         if (!Validator::required($fullName) || !Validator::safeText($fullName, 120)) {
             Session::flash('error', 'Valid full name is required.');
@@ -232,6 +262,10 @@ class EmployeeController extends Controller
             Session::flash('error', 'Age must be between 18 and 80.');
             Response::redirect($base . '/admin/employees/edit/' . $employeeId);
         }
+        if (!Validator::required($department) || !Validator::safeText($department, 120)) {
+            Session::flash('error', 'Valid department is required.');
+            Response::redirect($base . '/admin/employees/edit/' . $employeeId);
+        }
 
         if ($userModel->emailExists($email, $employeeId)) {
             Session::flash('error', 'Email already exists.');
@@ -243,6 +277,7 @@ class EmployeeController extends Controller
             'email' => $email,
             'password_hash' => $existing['password_hash'],
             'age' => (int) $age,
+            'department' => $department !== '' ? $department : null,
             'perm_line1' => trim($_POST['perm_line1'] ?? ''),
             'perm_line2' => trim($_POST['perm_line2'] ?? ''),
             'perm_city' => trim($_POST['perm_city'] ?? ''),

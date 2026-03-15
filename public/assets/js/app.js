@@ -19,7 +19,7 @@
 
             if (typeof form.checkValidity === 'function' && !form.checkValidity()) {
                 form.classList.add('was-validated');
-                showMessage(messageEl, 'Please fix the highlighted fields.', false);
+                showMessage(messageEl, 'Please fill the required fields.', false);
                 return;
             }
 

@@ -42,6 +42,11 @@ $action = $isEdit
                     <div class="invalid-feedback">Age must be between 18 and 80.</div>
                 </div>
                 <div class="col-12 col-md-9">
+                    <label class="form-label">Department</label>
+                    <input class="form-control" type="text" name="department" maxlength="120" required value="<?= htmlspecialchars((string) ($employee['department'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" placeholder="e.g. HR, Sales, Engineering">
+                    <div class="invalid-feedback">Please enter department.</div>
+                </div>
+                <div class="col-12 col-md-9">
                     <label class="form-label"><?= $isEdit ? 'New Password (optional)' : 'Password' ?></label>
                     <input class="form-control" type="password" name="password" <?= $isEdit ? '' : 'required' ?> minlength="8" placeholder="<?= $isEdit ? 'Leave blank to keep current password' : '' ?>">
                     <?php if (!$isEdit): ?>

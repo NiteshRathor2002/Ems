@@ -111,6 +111,7 @@ $today = date('D, d M Y');
                         <th style="width:70px;">ID</th>
                         <th style="width:70px;">Photo</th>
                         <th>Name</th>
+                        <th>Department</th>
                         <th>Email</th>
                         <th style="width:90px;">Age</th>
                         <th style="width:180px;">Created</th>
@@ -118,7 +119,7 @@ $today = date('D, d M Y');
                 </thead>
                 <tbody>
                     <?php if (empty($recentEmployees)): ?>
-                        <tr><td colspan="6" class="text-muted">No recent employees.</td></tr>
+                        <tr><td colspan="7" class="text-muted">No recent employees.</td></tr>
                     <?php else: ?>
                         <?php foreach ($recentEmployees as $emp): ?>
                             <tr>
@@ -133,6 +134,7 @@ $today = date('D, d M Y');
                                     <?php endif; ?>
                                 </td>
                                 <td><?= htmlspecialchars($emp['full_name'], ENT_QUOTES, 'UTF-8') ?></td>
+                                <td><?= htmlspecialchars((string) ($emp['department'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
                                 <td><?= htmlspecialchars($emp['email'], ENT_QUOTES, 'UTF-8') ?></td>
                                 <td><?= (int) $emp['age'] ?></td>
                                 <td class="text-muted small"><?= htmlspecialchars((string) ($emp['created_at'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>

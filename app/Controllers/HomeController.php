@@ -18,7 +18,7 @@ class HomeController extends Controller
             if (Auth::isAdmin()) {
                 Response::redirect($base . '/admin/dashboard');
             }
-            Response::redirect($base . '/profile');
+            Response::redirect($base . '/dashboard');
         }
 
         Response::redirect($base . '/login');

@@ -20,7 +20,11 @@
                     <label class="form-label">Age</label>
                     <input class="form-control" type="number" name="age" min="18" max="80" value="<?= (int) $user['age'] ?>" required>
                 </div>
-                <div class="col-12 col-md-9">
+                <div class="col-12 col-md-3">
+                    <label class="form-label">Department (not editable)</label>
+                    <input class="form-control" type="text" value="<?= htmlspecialchars((string) ($user['department'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" disabled>
+                </div>
+                <div class="col-12 col-md-6">
                     <label class="form-label">Profile Picture</label>
                     <input class="form-control" type="file" name="profile_picture" accept=".jpg,.jpeg,.png,.webp" data-max-size="2097152">
                     <div class="form-text">Allowed: jpg/png/webp. Max size: 2MB.</div>

@@ -10,15 +10,53 @@ use PDO;
 class User
 {
     private PDO $db;
+    private ?bool $departmentColumnExists = null;
 
     public function __construct(array $config)
     {
         $this->db = Database::connection($config['db']);
     }
 
+    public function departmentFeatureReady(): bool
+    {
+        return $this->hasDepartmentColumn();
+    }
+
+    private function hasDepartmentColumn(): bool
+    {
+        if ($this->departmentColumnExists !== null) {
+            return $this->departmentColumnExists;
+        }
+
+        $stmt = $this->db->prepare("SHOW COLUMNS FROM users LIKE 'department'");
+        $stmt->execute();
+        $this->departmentColumnExists = (bool) $stmt->fetch();
+        return $this->departmentColumnExists;
+    }
+
+    private function selectDepartmentExpr(): string
+    {
+        return $this->hasDepartmentColumn() ? 'department' : 'NULL AS department';
+    }
+
     public function create(array $data): int
     {
-        $sql = 'INSERT INTO users (
+        if ($this->hasDepartmentColumn()) {
+            $data = array_merge(['department' => null], $data);
+            $sql = 'INSERT INTO users (
+            full_name, email, password_hash, age, department,
+            perm_line1, perm_line2, perm_city, perm_state,
+            curr_line1, curr_line2, curr_city, curr_state,
+            profile_picture
+        ) VALUES (
+            :full_name, :email, :password_hash, :age, :department,
+            :perm_line1, :perm_line2, :perm_city, :perm_state,
+            :curr_line1, :curr_line2, :curr_city, :curr_state,
+            :profile_picture
+        )';
+        } else {
+            unset($data['department']);
+            $sql = 'INSERT INTO users (
             full_name, email, password_hash, age,
             perm_line1, perm_line2, perm_city, perm_state,
             curr_line1, curr_line2, curr_city, curr_state,
@@ -29,6 +67,7 @@ class User
             :curr_line1, :curr_line2, :curr_city, :curr_state,
             :profile_picture
         )';
+        }
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute($data);
@@ -94,7 +133,7 @@ class User
 
     public function allEmployees(): array
     {
-        $stmt = $this->db->query('SELECT id, full_name, email, age, perm_city, perm_state, curr_city, curr_state, profile_picture, created_at FROM users WHERE is_admin = 0 ORDER BY id DESC');
+        $stmt = $this->db->query('SELECT id, full_name, email, age, ' . $this->selectDepartmentExpr() . ', perm_city, perm_state, curr_city, curr_state, profile_picture, created_at FROM users WHERE is_admin = 0 ORDER BY id DESC');
         return $stmt->fetchAll();
     }
 
@@ -109,7 +148,23 @@ class User
     public function createEmployee(array $data): int
     {
         $data['is_admin'] = 0;
-        $sql = 'INSERT INTO users (
+
+        if ($this->hasDepartmentColumn()) {
+            $data = array_merge(['department' => null], $data);
+            $sql = 'INSERT INTO users (
+            full_name, email, password_hash, age, department,
+            perm_line1, perm_line2, perm_city, perm_state,
+            curr_line1, curr_line2, curr_city, curr_state,
+            profile_picture, is_admin
+        ) VALUES (
+            :full_name, :email, :password_hash, :age, :department,
+            :perm_line1, :perm_line2, :perm_city, :perm_state,
+            :curr_line1, :curr_line2, :curr_city, :curr_state,
+            :profile_picture, :is_admin
+        )';
+        } else {
+            unset($data['department']);
+            $sql = 'INSERT INTO users (
             full_name, email, password_hash, age,
             perm_line1, perm_line2, perm_city, perm_state,
             curr_line1, curr_line2, curr_city, curr_state,
@@ -120,6 +175,7 @@ class User
             :curr_line1, :curr_line2, :curr_city, :curr_state,
             :profile_picture, :is_admin
         )';
+        }
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute($data);
@@ -130,11 +186,16 @@ class User
     public function updateEmployee(int $id, array $data): void
     {
         $data['id'] = $id;
+        if (!$this->hasDepartmentColumn()) {
+            unset($data['department']);
+        }
+
         $sql = 'UPDATE users SET
             full_name = :full_name,
             email = :email,
             password_hash = :password_hash,
             age = :age,
+            ' . ($this->hasDepartmentColumn() ? 'department = :department,' : '') . '
             perm_line1 = :perm_line1,
             perm_line2 = :perm_line2,
             perm_city = :perm_city,
@@ -174,7 +235,7 @@ class User
     public function recentEmployees(int $limit = 5): array
     {
         $limit = max(1, min(50, $limit));
-        $stmt = $this->db->prepare('SELECT id, full_name, email, age, profile_picture, created_at FROM users WHERE is_admin = 0 ORDER BY id DESC LIMIT ' . $limit);
+        $stmt = $this->db->prepare('SELECT id, full_name, email, age, ' . $this->selectDepartmentExpr() . ', profile_picture, created_at FROM users WHERE is_admin = 0 ORDER BY id DESC LIMIT ' . $limit);
         $stmt->execute();
         return $stmt->fetchAll();
     }
@@ -184,18 +245,79 @@ class User
         $limit = max(1, min(500, $limit));
         $query = trim((string) $query);
         if ($query === '') {
-            $stmt = $this->db->prepare('SELECT id, full_name, email, age, perm_city, perm_state, curr_city, curr_state, profile_picture, created_at FROM users WHERE is_admin = 0 ORDER BY id DESC LIMIT ' . $limit);
+            $stmt = $this->db->prepare('SELECT id, full_name, email, age, ' . $this->selectDepartmentExpr() . ', perm_city, perm_state, curr_city, curr_state, profile_picture, created_at FROM users WHERE is_admin = 0 ORDER BY id DESC LIMIT ' . $limit);
             $stmt->execute();
             return $stmt->fetchAll();
         }
 
         $like = '%' . $query . '%';
-        $stmt = $this->db->prepare('SELECT id, full_name, email, age, perm_city, perm_state, curr_city, curr_state, profile_picture, created_at FROM users WHERE is_admin = 0 AND (full_name LIKE :q_name OR email LIKE :q_email OR CAST(id AS CHAR) = :q_id) ORDER BY id DESC LIMIT ' . $limit);
-        $stmt->execute([
+        $where = 'full_name LIKE :q_name OR email LIKE :q_email OR CAST(id AS CHAR) = :q_id';
+        $params = [
             'q_name' => $like,
             'q_email' => $like,
             'q_id' => $query,
-        ]);
+        ];
+        if ($this->hasDepartmentColumn()) {
+            $where = 'full_name LIKE :q_name OR email LIKE :q_email OR department LIKE :q_dept OR CAST(id AS CHAR) = :q_id';
+            $params['q_dept'] = $like;
+        }
+
+        $stmt = $this->db->prepare('SELECT id, full_name, email, age, ' . $this->selectDepartmentExpr() . ', perm_city, perm_state, curr_city, curr_state, profile_picture, created_at FROM users WHERE is_admin = 0 AND (' . $where . ') ORDER BY id DESC LIMIT ' . $limit);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+
+    public function countEmployeesMatching(?string $query): int
+    {
+        $query = trim((string) $query);
+        if ($query === '') {
+            return $this->countEmployees();
+        }
+
+        $like = '%' . $query . '%';
+        $where = 'full_name LIKE :q_name OR email LIKE :q_email OR CAST(id AS CHAR) = :q_id';
+        $params = [
+            'q_name' => $like,
+            'q_email' => $like,
+            'q_id' => $query,
+        ];
+        if ($this->hasDepartmentColumn()) {
+            $where = 'full_name LIKE :q_name OR email LIKE :q_email OR department LIKE :q_dept OR CAST(id AS CHAR) = :q_id';
+            $params['q_dept'] = $like;
+        }
+
+        $stmt = $this->db->prepare('SELECT COUNT(*) AS c FROM users WHERE is_admin = 0 AND (' . $where . ')');
+        $stmt->execute($params);
+        $row = $stmt->fetch();
+        return (int) ($row['c'] ?? 0);
+    }
+
+    public function searchEmployeesPage(?string $query, int $limit = 20, int $offset = 0): array
+    {
+        $limit = max(1, min(500, $limit));
+        $offset = max(0, $offset);
+        $query = trim((string) $query);
+
+        if ($query === '') {
+            $stmt = $this->db->prepare('SELECT id, full_name, email, age, ' . $this->selectDepartmentExpr() . ', perm_city, perm_state, curr_city, curr_state, profile_picture, created_at FROM users WHERE is_admin = 0 ORDER BY id DESC LIMIT ' . $limit . ' OFFSET ' . $offset);
+            $stmt->execute();
+            return $stmt->fetchAll();
+        }
+
+        $like = '%' . $query . '%';
+        $where = 'full_name LIKE :q_name OR email LIKE :q_email OR CAST(id AS CHAR) = :q_id';
+        $params = [
+            'q_name' => $like,
+            'q_email' => $like,
+            'q_id' => $query,
+        ];
+        if ($this->hasDepartmentColumn()) {
+            $where = 'full_name LIKE :q_name OR email LIKE :q_email OR department LIKE :q_dept OR CAST(id AS CHAR) = :q_id';
+            $params['q_dept'] = $like;
+        }
+
+        $stmt = $this->db->prepare('SELECT id, full_name, email, age, ' . $this->selectDepartmentExpr() . ', perm_city, perm_state, curr_city, curr_state, profile_picture, created_at FROM users WHERE is_admin = 0 AND (' . $where . ') ORDER BY id DESC LIMIT ' . $limit . ' OFFSET ' . $offset);
+        $stmt->execute($params);
         return $stmt->fetchAll();
     }
 }

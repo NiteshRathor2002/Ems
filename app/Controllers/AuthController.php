@@ -19,7 +19,7 @@ class AuthController extends Controller
     public function signupPage(): void
     {
         if (Auth::check()) {
-            Response::redirect((string) ($this->config['base_path'] ?? '/Ems/public') . '/profile');
+            Response::redirect((string) ($this->config['base_path'] ?? '/Ems/public') . '/dashboard');
         }
         $this->render('auth/signup', ['title' => 'Sign Up']);
     }
@@ -27,7 +27,7 @@ class AuthController extends Controller
     public function loginPage(): void
     {
         if (Auth::check()) {
-            Response::redirect((string) ($this->config['base_path'] ?? '/Ems/public') . '/profile');
+            Response::redirect((string) ($this->config['base_path'] ?? '/Ems/public') . '/dashboard');
         }
         $this->render('auth/login', ['title' => 'Login']);
     }
@@ -112,7 +112,7 @@ class AuthController extends Controller
         Auth::login($userId);
         Session::set('user_name', $fullName);
 
-        Response::json(['ok' => true, 'message' => 'Signup successful', 'redirect' => (string) ($this->config['base_path'] ?? '/Ems/public') . '/profile']);
+        Response::json(['ok' => true, 'message' => 'Signup successful', 'redirect' => (string) ($this->config['base_path'] ?? '/Ems/public') . '/dashboard']);
     }
 
     public function login(): void
@@ -135,7 +135,7 @@ class AuthController extends Controller
 
         Auth::login((int) $user['id'], (bool) $user['is_admin']);
         Session::set('user_name', (string) ($user['full_name'] ?? 'User'));
-        Response::json(['ok' => true, 'message' => 'Login successful', 'redirect' => (string) ($this->config['base_path'] ?? '/Ems/public') . '/profile']);
+        Response::json(['ok' => true, 'message' => 'Login successful', 'redirect' => (string) ($this->config['base_path'] ?? '/Ems/public') . '/dashboard']);
     }
 
     public function logout(): void

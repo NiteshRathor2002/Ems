@@ -20,6 +20,9 @@ class ProfileController extends Controller
         if (!Auth::check()) {
             Response::redirect((string) ($this->config['base_path'] ?? '/Ems/public') . '/login');
         }
+        if (Auth::isAdmin()) {
+            Response::redirect((string) ($this->config['base_path'] ?? '/Ems/public') . '/admin/dashboard');
+        }
 
         $userId = Auth::userId();
         $user = (new User($this->config))->findById((int) $userId);
@@ -36,12 +39,15 @@ class ProfileController extends Controller
             'user' => $user,
             'qualifications' => $qualifications,
             'experiences' => $experiences,
-        ]);
+        ], 'employee');
     }
 
     public function update(): void
     {
         if (!Auth::check()) {
+            Response::json(['ok' => false, 'message' => 'Unauthorized'], 401);
+        }
+        if (Auth::isAdmin()) {
             Response::json(['ok' => false, 'message' => 'Unauthorized'], 401);
         }
         if (!Csrf::verify($_POST['_csrf'] ?? null)) {

@@ -21,6 +21,10 @@ abstract class Controller
             $layoutHeader = __DIR__ . '/../Views/layout/admin_header.php';
             $layoutFooter = __DIR__ . '/../Views/layout/admin_footer.php';
         }
+        if ($layout === 'employee') {
+            $layoutHeader = __DIR__ . '/../Views/layout/employee_header.php';
+            $layoutFooter = __DIR__ . '/../Views/layout/employee_footer.php';
+        }
 
         require $layoutHeader;
         require __DIR__ . '/../Views/' . $view . '.php';
