@@ -77,11 +77,7 @@ $adminInitials = strtoupper(mb_substr(trim($adminName), 0, 1)) ?: 'A';
                     <i class="bi bi-bar-chart"></i><span>Report</span>
                 </a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link ems-navlink disabled" href="#" tabindex="-1" aria-disabled="true">
-                    <i class="bi bi-house"></i><span>Homepage</span>
-                </a>
-            </li>
+           
         </ul>
 
         <div class="mt-auto px-3 pb-3">

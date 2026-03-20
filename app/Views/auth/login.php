@@ -20,6 +20,7 @@
 
                     <button class="btn btn-dark w-100" type="submit">Login</button>
                     <div id="loginMessage" class="form-text mt-2"></div>
+                    <a href="<?= $base ?>/employee/forgot">forgot passwod</a>
                 </form>
             </div>
         </div>

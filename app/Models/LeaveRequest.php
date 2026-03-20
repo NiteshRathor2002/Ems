@@ -108,6 +108,30 @@ class LeaveRequest
         return $stmt->fetchAll();
     }
 
+    public function statusCounts(): array
+    {
+        $defaults = [
+            'pending' => 0,
+            'approved' => 0,
+            'rejected' => 0,
+        ];
+
+        if (!$this->hasTable()) {
+            return $defaults;
+        }
+
+        $stmt = $this->db->query('SELECT status, COUNT(*) AS total FROM leave_requests GROUP BY status');
+        $rows = $stmt->fetchAll();
+        foreach ($rows as $row) {
+            $status = (string) ($row['status'] ?? '');
+            if (array_key_exists($status, $defaults)) {
+                $defaults[$status] = (int) ($row['total'] ?? 0);
+            }
+        }
+
+        return $defaults;
+    }
+
     public function findById(int $id): ?array
     {
         if (!$this->hasTable()) {

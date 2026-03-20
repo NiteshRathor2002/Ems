@@ -18,7 +18,7 @@ $base = (string) ($config['base_path'] ?? (parse_url((string) ($config['app_url'
 <body data-base="<?= htmlspecialchars($base, ENT_QUOTES, 'UTF-8') ?>">
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="<?= $base ?>/">EMS Core PHP</a>
+        <a class="navbar-brand fw-bold" href="<?= $base ?>/">EMS</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarDefault" aria-controls="navbarDefault" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>

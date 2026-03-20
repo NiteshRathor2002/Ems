@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash VARCHAR(255) NOT NULL,
     age TINYINT UNSIGNED NOT NULL,
     department VARCHAR(120) NULL,
+    salary INT UNSIGNED NULL,
 
     perm_line1 VARCHAR(150) NOT NULL,
     perm_line2 VARCHAR(150) NULL,
@@ -58,6 +59,17 @@ CREATE TABLE IF NOT EXISTS leave_requests (
     INDEX idx_leave_status (status),
     INDEX idx_leave_start (start_date),
     INDEX idx_leave_end (end_date)
+);
+
+CREATE TABLE IF NOT EXISTS password_reset_otps (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(190) NOT NULL,
+    otp_hash VARCHAR(255) NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    used_at TIMESTAMP NULL DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_otp_email (email),
+    INDEX idx_otp_expires (expires_at)
 );
 
 -- Default Admin

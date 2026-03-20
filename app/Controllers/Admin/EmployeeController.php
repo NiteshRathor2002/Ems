@@ -86,12 +86,17 @@ class EmployeeController extends Controller
             Session::flash('error', "Database update required: add 'department' column to users table.");
             Response::redirect($base . '/admin/employees/create');
         }
+        if (!$userModel->salaryFeatureReady()) {
+            Session::flash('error', "Database update required: add 'salary' column to users table.");
+            Response::redirect($base . '/admin/employees/create');
+        }
 
         $fullName = trim($_POST['full_name'] ?? '');
         $email = strtolower(trim($_POST['email'] ?? ''));
         $password = (string) ($_POST['password'] ?? '');
         $age = $_POST['age'] ?? null;
         $department = trim($_POST['department'] ?? '');
+        $salary = $_POST['salary'] ?? null;
 
         $payload = [
             'full_name' => $fullName,
@@ -99,6 +104,7 @@ class EmployeeController extends Controller
             'password_hash' => '',
             'age' => (int) $age,
             'department' => $department !== '' ? $department : null,
+            'salary' => is_numeric($salary) ? (int) $salary : null,
             'perm_line1' => trim($_POST['perm_line1'] ?? ''),
             'perm_line2' => trim($_POST['perm_line2'] ?? ''),
             'perm_city' => trim($_POST['perm_city'] ?? ''),
@@ -132,6 +138,10 @@ class EmployeeController extends Controller
         }
         if (!Validator::required($department) || !Validator::safeText($department, 120)) {
             Session::flash('error', 'Valid department is required.');
+            Response::redirect($base . '/admin/employees/create');
+        }
+        if (!Validator::integerBetween($salary, 1, 100000000)) {
+            Session::flash('error', 'Valid salary is required.');
             Response::redirect($base . '/admin/employees/create');
         }
         foreach (['perm_line1','perm_city','perm_state','curr_line1','curr_city','curr_state'] as $requiredKey) {
@@ -234,6 +244,10 @@ class EmployeeController extends Controller
             Session::flash('error', "Database update required: add 'department' column to users table.");
             Response::redirect($base . '/admin/employees/edit/' . $employeeId);
         }
+        if (!$userModel->salaryFeatureReady()) {
+            Session::flash('error', "Database update required: add 'salary' column to users table.");
+            Response::redirect($base . '/admin/employees/edit/' . $employeeId);
+        }
         $existing = $userModel->findEmployeeById($employeeId);
         if (!$existing) {
             Session::flash('error', 'Employee not found.');
@@ -245,6 +259,7 @@ class EmployeeController extends Controller
         $password = (string) ($_POST['password'] ?? '');
         $age = $_POST['age'] ?? null;
         $department = trim($_POST['department'] ?? '');
+        $salary = $_POST['salary'] ?? null;
 
         if (!Validator::required($fullName) || !Validator::safeText($fullName, 120)) {
             Session::flash('error', 'Valid full name is required.');
@@ -266,6 +281,10 @@ class EmployeeController extends Controller
             Session::flash('error', 'Valid department is required.');
             Response::redirect($base . '/admin/employees/edit/' . $employeeId);
         }
+        if (!Validator::integerBetween($salary, 1, 100000000)) {
+            Session::flash('error', 'Valid salary is required.');
+            Response::redirect($base . '/admin/employees/edit/' . $employeeId);
+        }
 
         if ($userModel->emailExists($email, $employeeId)) {
             Session::flash('error', 'Email already exists.');
@@ -278,6 +297,7 @@ class EmployeeController extends Controller
             'password_hash' => $existing['password_hash'],
             'age' => (int) $age,
             'department' => $department !== '' ? $department : null,
+            'salary' => is_numeric($salary) ? (int) $salary : null,
             'perm_line1' => trim($_POST['perm_line1'] ?? ''),
             'perm_line2' => trim($_POST['perm_line2'] ?? ''),
             'perm_city' => trim($_POST['perm_city'] ?? ''),

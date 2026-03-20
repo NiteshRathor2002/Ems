@@ -1,5 +1,19 @@
 <?php use App\Core\Csrf; ?>
-<?php $uploadPath = (string) (($config['upload']['profile_web_path'] ?? '/files/profile/')); ?>
+<?php
+$uploadPath = (string) (($config['upload']['profile_web_path'] ?? '/files/profile/'));
+$userInitials = strtoupper(mb_substr(trim((string) $user['full_name']), 0, 1)) ?: 'E';
+$profileUrl = '';
+if (!empty($user['profile_picture'])) {
+    $profileUrl = $base . $uploadPath . rawurlencode((string) $user['profile_picture']);
+}
+$department = trim((string) ($user['department'] ?? ''));
+$location = trim((string) ($user['curr_city'] ?? ''));
+if ($location !== '' && !empty($user['curr_state'])) {
+    $location .= ', ' . $user['curr_state'];
+} elseif ($location === '' && !empty($user['curr_state'])) {
+    $location = (string) $user['curr_state'];
+}
+?>
 <div class="card shadow-sm border-0">
     <div class="card-body p-4">
         <h1 class="h4 mb-3">My Profile</h1>
@@ -8,6 +22,37 @@
             <input type="hidden" name="_csrf" value="<?= Csrf::token() ?>">
 
             <div class="row g-3">
+                <div class="col-12">
+                    <div class="profile-hero">
+                        <div class="profile-hero-body">
+                            <div class="profile-photo">
+                                <button type="button" class="profile-photo-btn" id="profilePhotoBtn" aria-label="Change profile picture">
+                                    <img id="profilePhotoPreview" class="profile-photo-img<?= $profileUrl ? '' : ' d-none' ?>" src="<?= htmlspecialchars($profileUrl, ENT_QUOTES, 'UTF-8') ?>" alt="Profile picture">
+                                    <span id="profilePhotoFallback" class="profile-photo-fallback<?= $profileUrl ? ' d-none' : '' ?>"><?= htmlspecialchars($userInitials, ENT_QUOTES, 'UTF-8') ?></span>
+                                    <span class="profile-photo-icon" aria-hidden="true"><i class="bi bi-camera"></i></span>
+                                </button>
+                                <input class="visually-hidden" type="file" id="profilePictureInput" name="profile_picture" accept=".jpg,.jpeg,.png,.webp" data-max-size="2097152">
+                                <div class="profile-photo-hint">Click the camera to update your photo.</div>
+                                <div class="form-text">Allowed: jpg/png/webp. Max size: 2MB.</div>
+                            </div>
+                            <div class="profile-meta">
+                                <div class="profile-title">Welcome, <?= htmlspecialchars((string) $user['full_name'], ENT_QUOTES, 'UTF-8') ?></div>
+                                <div class="profile-sub">Employee Dashboard</div>
+                                <div class="profile-chips">
+                                    <?php if ($department !== ''): ?>
+                                        <span class="profile-chip"><i class="bi bi-building"></i><?= htmlspecialchars($department, ENT_QUOTES, 'UTF-8') ?></span>
+                                    <?php endif; ?>
+                                    <span class="profile-chip"><i class="bi bi-geo-alt"></i><?= htmlspecialchars($location !== '' ? $location : 'Location not set', ENT_QUOTES, 'UTF-8') ?></span>
+                                    <span class="profile-chip"><i class="bi bi-person"></i><?= (int) $user['age'] ?> yrs</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <h2 class="section-title">Personal Details</h2>
+                </div>
                 <div class="col-12 col-md-6">
                     <label class="form-label">Full Name</label>
                     <input class="form-control" type="text" name="full_name" value="<?= htmlspecialchars($user['full_name'], ENT_QUOTES, 'UTF-8') ?>" required>
@@ -24,20 +69,10 @@
                     <label class="form-label">Department (not editable)</label>
                     <input class="form-control" type="text" value="<?= htmlspecialchars((string) ($user['department'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" disabled>
                 </div>
-                <div class="col-12 col-md-6">
-                    <label class="form-label">Profile Picture</label>
-                    <input class="form-control" type="file" name="profile_picture" accept=".jpg,.jpeg,.png,.webp" data-max-size="2097152">
-                    <div class="form-text">Allowed: jpg/png/webp. Max size: 2MB.</div>
-                    <?php if (!empty($user['profile_picture'])): ?>
-                        <div class="mt-2">
-                            <img src="<?= htmlspecialchars($base . $uploadPath . rawurlencode($user['profile_picture']), ENT_QUOTES, 'UTF-8') ?>" alt="Profile" class="rounded border object-fit-cover" style="width:110px;height:110px;">
-                        </div>
-                    <?php endif; ?>
-                </div>
 
                 <div class="col-12"><hr class="my-2"></div>
 
-                <div class="col-12"><h2 class="h6 mb-0">Permanent Address</h2></div>
+                <div class="col-12"><h2 class="section-title">Permanent Address</h2></div>
                 <div class="col-12 col-md-6">
                     <label class="form-label">Line 1</label>
                     <input class="form-control" type="text" name="perm_line1" value="<?= htmlspecialchars($user['perm_line1'], ENT_QUOTES, 'UTF-8') ?>" required>
@@ -60,7 +95,7 @@
                     </select>
                 </div>
 
-                <div class="col-12"><h2 class="h6 mb-0 mt-2">Current Address</h2></div>
+                <div class="col-12"><h2 class="section-title mt-2">Current Address</h2></div>
                 <div class="col-12 col-md-6">
                     <label class="form-label">Line 1</label>
                     <input class="form-control" type="text" name="curr_line1" value="<?= htmlspecialchars($user['curr_line1'], ENT_QUOTES, 'UTF-8') ?>" required>
@@ -85,7 +120,7 @@
                 <div class="col-12"><hr class="my-2"></div>
 
                 <div class="col-12 col-md-6">
-                    <h2 class="h6 mb-2">Qualifications</h2>
+                    <h2 class="section-title mb-2">Qualifications</h2>
                     <div id="qualificationWrap">
                         <?php foreach ($qualifications as $index => $q): ?>
                             <div class="dynamic-row">
@@ -97,7 +132,7 @@
                 </div>
 
                 <div class="col-12 col-md-6">
-                    <h2 class="h6 mb-2">Experiences</h2>
+                    <h2 class="section-title mb-2">Experiences</h2>
                     <div id="experienceWrap">
                         <?php foreach ($experiences as $index => $e): ?>
                             <div class="dynamic-row">
@@ -109,7 +144,7 @@
                 </div>
 
                 <div class="col-12">
-                    <button class="btn btn-dark w-100" type="submit">Save Changes (AJAX)</button>
+                    <button class="btn btn-dark w-100" type="submit">Save Changes</button>
                     <div id="profileMessage" class="form-text mt-2"></div>
                 </div>
             </div>

@@ -89,6 +89,7 @@ $employeesUrl = htmlspecialchars($base, ENT_QUOTES, 'UTF-8') . '/admin/employees
                         <th style="width: 70px;">Photo</th>
                         <th>Name</th>
                         <th>Department</th>
+                        <th style="width: 110px;">Salary</th>
                         <th>Email</th>
                         <th style="width: 80px;">Age</th>
                         <th>Permanent</th>
@@ -98,7 +99,7 @@ $employeesUrl = htmlspecialchars($base, ENT_QUOTES, 'UTF-8') . '/admin/employees
                 </thead>
                 <tbody>
                     <?php if (empty($employees)): ?>
-                        <tr><td colspan="9" class="text-muted">No employees found.</td></tr>
+                        <tr><td colspan="10" class="text-muted">No employees found.</td></tr>
                     <?php else: ?>
                         <?php foreach ($employees as $emp): ?>
                             <tr>
@@ -114,6 +115,7 @@ $employeesUrl = htmlspecialchars($base, ENT_QUOTES, 'UTF-8') . '/admin/employees
                                 </td>
                                 <td><?= htmlspecialchars($emp['full_name'], ENT_QUOTES, 'UTF-8') ?></td>
                                 <td><?= htmlspecialchars((string) ($emp['department'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
+                                <td><?= isset($emp['salary']) && $emp['salary'] !== null ? htmlspecialchars((string) $emp['salary'], ENT_QUOTES, 'UTF-8') : '-' ?></td>
                                 <td><?= htmlspecialchars($emp['email'], ENT_QUOTES, 'UTF-8') ?></td>
                                 <td><?= (int) $emp['age'] ?></td>
                                 <td><?= htmlspecialchars($emp['perm_city'] . ', ' . $emp['perm_state'], ENT_QUOTES, 'UTF-8') ?></td>

@@ -48,6 +48,12 @@ $employeeId = (int) ($employee['id'] ?? 0);
                         <div class="fw-semibold"><?= htmlspecialchars((string) ($employee['department'] ?? ''), ENT_QUOTES, 'UTF-8') ?></div>
                     </div>
                     <div class="col-12 col-md-3">
+                        <div class="text-muted small">Salary</div>
+                        <div class="fw-semibold">
+                            <?= isset($employee['salary']) && $employee['salary'] !== null ? htmlspecialchars((string) $employee['salary'], ENT_QUOTES, 'UTF-8') : '-' ?>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-3">
                         <div class="text-muted small">Created</div>
                         <div class="fw-semibold"><?= htmlspecialchars((string) ($employee['created_at'] ?? ''), ENT_QUOTES, 'UTF-8') ?></div>
                     </div>

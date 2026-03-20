@@ -65,7 +65,7 @@ $today = date('D, d M Y');
             <div class="card-body">
                 <div class="ems-stat-icon"><i class="bi bi-send"></i></div>
                 <div class="small opacity-75">New Leave Request</div>
-                <div class="display-6 fw-semibold mb-0">0</div>
+                <div class="display-6 fw-semibold mb-0"><?= (int) ($pendingLeaves ?? 0) ?></div>
             </div>
         </div>
     </div>
@@ -74,7 +74,7 @@ $today = date('D, d M Y');
             <div class="card-body">
                 <div class="ems-stat-icon"><i class="bi bi-x-square"></i></div>
                 <div class="small opacity-75">Rejected Leaves</div>
-                <div class="display-6 fw-semibold mb-0">0</div>
+                <div class="display-6 fw-semibold mb-0"><?= (int) ($rejectedLeaves ?? 0) ?></div>
             </div>
         </div>
     </div>
@@ -83,7 +83,7 @@ $today = date('D, d M Y');
             <div class="card-body">
                 <div class="ems-stat-icon"><i class="bi bi-check2-square"></i></div>
                 <div class="small opacity-75">Approved Leaves</div>
-                <div class="display-6 fw-semibold mb-0">0</div>
+                <div class="display-6 fw-semibold mb-0"><?= (int) ($approvedLeaves ?? 0) ?></div>
             </div>
         </div>
     </div>

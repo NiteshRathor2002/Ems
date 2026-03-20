@@ -41,7 +41,12 @@ $action = $isEdit
                     <input class="form-control" type="number" name="age" min="18" max="80" required value="<?= htmlspecialchars((string) ($employee['age'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
                     <div class="invalid-feedback">Age must be between 18 and 80.</div>
                 </div>
-                <div class="col-12 col-md-9">
+                <div class="col-12 col-md-3">
+                    <label class="form-label">Salary</label>
+                    <input class="form-control" type="number" name="salary" min="1" max="100000000" step="1" required value="<?= htmlspecialchars((string) ($employee['salary'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" placeholder="e.g. 50000">
+                    <div class="invalid-feedback">Please enter salary.</div>
+                </div>
+                <div class="col-12 col-md-6">
                     <label class="form-label">Department</label>
                     <input class="form-control" type="text" name="department" maxlength="120" required value="<?= htmlspecialchars((string) ($employee['department'] ?? ''), ENT_QUOTES, 'UTF-8') ?>" placeholder="e.g. HR, Sales, Engineering">
                     <div class="invalid-feedback">Please enter department.</div>

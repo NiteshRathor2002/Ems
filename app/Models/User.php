@@ -11,6 +11,7 @@ class User
 {
     private PDO $db;
     private ?bool $departmentColumnExists = null;
+    private ?bool $salaryColumnExists = null;
 
     public function __construct(array $config)
     {
@@ -20,6 +21,11 @@ class User
     public function departmentFeatureReady(): bool
     {
         return $this->hasDepartmentColumn();
+    }
+
+    public function salaryFeatureReady(): bool
+    {
+        return $this->hasSalaryColumn();
     }
 
     private function hasDepartmentColumn(): bool
@@ -37,6 +43,23 @@ class User
     private function selectDepartmentExpr(): string
     {
         return $this->hasDepartmentColumn() ? 'department' : 'NULL AS department';
+    }
+
+    private function hasSalaryColumn(): bool
+    {
+        if ($this->salaryColumnExists !== null) {
+            return $this->salaryColumnExists;
+        }
+
+        $stmt = $this->db->prepare("SHOW COLUMNS FROM users LIKE 'salary'");
+        $stmt->execute();
+        $this->salaryColumnExists = (bool) $stmt->fetch();
+        return $this->salaryColumnExists;
+    }
+
+    private function selectSalaryExpr(): string
+    {
+        return $this->hasSalaryColumn() ? 'salary' : 'NULL AS salary';
     }
 
     public function create(array $data): int
@@ -133,7 +156,7 @@ class User
 
     public function allEmployees(): array
     {
-        $stmt = $this->db->query('SELECT id, full_name, email, age, ' . $this->selectDepartmentExpr() . ', perm_city, perm_state, curr_city, curr_state, profile_picture, created_at FROM users WHERE is_admin = 0 ORDER BY id DESC');
+        $stmt = $this->db->query('SELECT id, full_name, email, age, ' . $this->selectDepartmentExpr() . ', ' . $this->selectSalaryExpr() . ', perm_city, perm_state, curr_city, curr_state, profile_picture, created_at FROM users WHERE is_admin = 0 ORDER BY id DESC');
         return $stmt->fetchAll();
     }
 
@@ -148,9 +171,33 @@ class User
     public function createEmployee(array $data): int
     {
         $data['is_admin'] = 0;
+        $hasDepartment = $this->hasDepartmentColumn();
+        $hasSalary = $this->hasSalaryColumn();
 
-        if ($this->hasDepartmentColumn()) {
+        if ($hasDepartment) {
             $data = array_merge(['department' => null], $data);
+        } else {
+            unset($data['department']);
+        }
+        if ($hasSalary) {
+            $data = array_merge(['salary' => null], $data);
+        } else {
+            unset($data['salary']);
+        }
+
+        if ($hasDepartment && $hasSalary) {
+            $sql = 'INSERT INTO users (
+            full_name, email, password_hash, age, department, salary,
+            perm_line1, perm_line2, perm_city, perm_state,
+            curr_line1, curr_line2, curr_city, curr_state,
+            profile_picture, is_admin
+        ) VALUES (
+            :full_name, :email, :password_hash, :age, :department, :salary,
+            :perm_line1, :perm_line2, :perm_city, :perm_state,
+            :curr_line1, :curr_line2, :curr_city, :curr_state,
+            :profile_picture, :is_admin
+        )';
+        } elseif ($hasDepartment) {
             $sql = 'INSERT INTO users (
             full_name, email, password_hash, age, department,
             perm_line1, perm_line2, perm_city, perm_state,
@@ -162,8 +209,19 @@ class User
             :curr_line1, :curr_line2, :curr_city, :curr_state,
             :profile_picture, :is_admin
         )';
+        } elseif ($hasSalary) {
+            $sql = 'INSERT INTO users (
+            full_name, email, password_hash, age, salary,
+            perm_line1, perm_line2, perm_city, perm_state,
+            curr_line1, curr_line2, curr_city, curr_state,
+            profile_picture, is_admin
+        ) VALUES (
+            :full_name, :email, :password_hash, :age, :salary,
+            :perm_line1, :perm_line2, :perm_city, :perm_state,
+            :curr_line1, :curr_line2, :curr_city, :curr_state,
+            :profile_picture, :is_admin
+        )';
         } else {
-            unset($data['department']);
             $sql = 'INSERT INTO users (
             full_name, email, password_hash, age,
             perm_line1, perm_line2, perm_city, perm_state,
@@ -186,8 +244,13 @@ class User
     public function updateEmployee(int $id, array $data): void
     {
         $data['id'] = $id;
-        if (!$this->hasDepartmentColumn()) {
+        $hasDepartment = $this->hasDepartmentColumn();
+        $hasSalary = $this->hasSalaryColumn();
+        if (!$hasDepartment) {
             unset($data['department']);
+        }
+        if (!$hasSalary) {
+            unset($data['salary']);
         }
 
         $sql = 'UPDATE users SET
@@ -195,7 +258,8 @@ class User
             email = :email,
             password_hash = :password_hash,
             age = :age,
-            ' . ($this->hasDepartmentColumn() ? 'department = :department,' : '') . '
+            ' . ($hasDepartment ? 'department = :department,' : '') . '
+            ' . ($hasSalary ? 'salary = :salary,' : '') . '
             perm_line1 = :perm_line1,
             perm_line2 = :perm_line2,
             perm_city = :perm_city,
@@ -235,7 +299,7 @@ class User
     public function recentEmployees(int $limit = 5): array
     {
         $limit = max(1, min(50, $limit));
-        $stmt = $this->db->prepare('SELECT id, full_name, email, age, ' . $this->selectDepartmentExpr() . ', profile_picture, created_at FROM users WHERE is_admin = 0 ORDER BY id DESC LIMIT ' . $limit);
+        $stmt = $this->db->prepare('SELECT id, full_name, email, age, ' . $this->selectDepartmentExpr() . ', ' . $this->selectSalaryExpr() . ', profile_picture, created_at FROM users WHERE is_admin = 0 ORDER BY id DESC LIMIT ' . $limit);
         $stmt->execute();
         return $stmt->fetchAll();
     }
@@ -245,7 +309,7 @@ class User
         $limit = max(1, min(500, $limit));
         $query = trim((string) $query);
         if ($query === '') {
-            $stmt = $this->db->prepare('SELECT id, full_name, email, age, ' . $this->selectDepartmentExpr() . ', perm_city, perm_state, curr_city, curr_state, profile_picture, created_at FROM users WHERE is_admin = 0 ORDER BY id DESC LIMIT ' . $limit);
+            $stmt = $this->db->prepare('SELECT id, full_name, email, age, ' . $this->selectDepartmentExpr() . ', ' . $this->selectSalaryExpr() . ', perm_city, perm_state, curr_city, curr_state, profile_picture, created_at FROM users WHERE is_admin = 0 ORDER BY id DESC LIMIT ' . $limit);
             $stmt->execute();
             return $stmt->fetchAll();
         }
@@ -262,7 +326,7 @@ class User
             $params['q_dept'] = $like;
         }
 
-        $stmt = $this->db->prepare('SELECT id, full_name, email, age, ' . $this->selectDepartmentExpr() . ', perm_city, perm_state, curr_city, curr_state, profile_picture, created_at FROM users WHERE is_admin = 0 AND (' . $where . ') ORDER BY id DESC LIMIT ' . $limit);
+        $stmt = $this->db->prepare('SELECT id, full_name, email, age, ' . $this->selectDepartmentExpr() . ', ' . $this->selectSalaryExpr() . ', perm_city, perm_state, curr_city, curr_state, profile_picture, created_at FROM users WHERE is_admin = 0 AND (' . $where . ') ORDER BY id DESC LIMIT ' . $limit);
         $stmt->execute($params);
         return $stmt->fetchAll();
     }
@@ -299,7 +363,7 @@ class User
         $query = trim((string) $query);
 
         if ($query === '') {
-            $stmt = $this->db->prepare('SELECT id, full_name, email, age, ' . $this->selectDepartmentExpr() . ', perm_city, perm_state, curr_city, curr_state, profile_picture, created_at FROM users WHERE is_admin = 0 ORDER BY id DESC LIMIT ' . $limit . ' OFFSET ' . $offset);
+            $stmt = $this->db->prepare('SELECT id, full_name, email, age, ' . $this->selectDepartmentExpr() . ', ' . $this->selectSalaryExpr() . ', perm_city, perm_state, curr_city, curr_state, profile_picture, created_at FROM users WHERE is_admin = 0 ORDER BY id DESC LIMIT ' . $limit . ' OFFSET ' . $offset);
             $stmt->execute();
             return $stmt->fetchAll();
         }
@@ -316,7 +380,7 @@ class User
             $params['q_dept'] = $like;
         }
 
-        $stmt = $this->db->prepare('SELECT id, full_name, email, age, ' . $this->selectDepartmentExpr() . ', perm_city, perm_state, curr_city, curr_state, profile_picture, created_at FROM users WHERE is_admin = 0 AND (' . $where . ') ORDER BY id DESC LIMIT ' . $limit . ' OFFSET ' . $offset);
+        $stmt = $this->db->prepare('SELECT id, full_name, email, age, ' . $this->selectDepartmentExpr() . ', ' . $this->selectSalaryExpr() . ', perm_city, perm_state, curr_city, curr_state, profile_picture, created_at FROM users WHERE is_admin = 0 AND (' . $where . ') ORDER BY id DESC LIMIT ' . $limit . ' OFFSET ' . $offset);
         $stmt->execute($params);
         return $stmt->fetchAll();
     }

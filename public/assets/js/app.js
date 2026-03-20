@@ -75,6 +75,13 @@
         }
     });
 
+    document.addEventListener('click', function (e) {
+        var photoBtn = e.target.closest('#profilePhotoBtn');
+        if (!photoBtn) return;
+        var input = byId('profilePictureInput');
+        if (input) input.click();
+    });
+
     // Bootstrap client-side validation for non-AJAX forms
     document.querySelectorAll('form.needs-validation').forEach(function (form) {
         form.addEventListener('submit', function (event) {
@@ -115,6 +122,17 @@
             var url = URL.createObjectURL(file);
             preview.src = url;
             preview.onload = function () { URL.revokeObjectURL(url); };
+        }
+
+        // Employee profile preview
+        var employeePreview = byId('profilePhotoPreview');
+        if (employeePreview && input.id === 'profilePictureInput') {
+            var fallback = byId('profilePhotoFallback');
+            var urlEmp = URL.createObjectURL(file);
+            employeePreview.src = urlEmp;
+            employeePreview.classList.remove('d-none');
+            if (fallback) fallback.classList.add('d-none');
+            employeePreview.onload = function () { URL.revokeObjectURL(urlEmp); };
         }
     });
 

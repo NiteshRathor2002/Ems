@@ -19,6 +19,10 @@ $router->get('/profile', 'ProfileController@page');
 $router->post('/api/profile/update', 'ProfileController@update');
 $router->get('/leave', 'LeaveController@index');
 $router->post('/leave/apply', 'LeaveController@apply');
+$router->get('/employee/forgot','ForgotpasswordController@otp');
+$router->post('/employee/forgot','ForgotpasswordController@sendOtp');
+$router->get('/forgot-password/otp','ForgotpasswordController@otpPage');
+$router->post('/forgot-password/otp','ForgotpasswordController@verifyOtp');
 
 // Files
 $router->get('/files/profile/{file}', 'FileController@profile');

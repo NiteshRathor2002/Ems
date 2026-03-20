@@ -13,6 +13,15 @@ return [
     'session' => [
         'name' => 'ems_session',
     ],
+    'mail' => [
+        'host' => 'smtp.mailosaur.net',
+        'port' => 465,
+        'username' => 'd1cxicsf@mailosaur.net',
+        'password' => 'RrBgatiEPl2aqqh7ygqo3dUVbyAiGhSo',
+        'encryption' => 'SSL',
+        'from_address' => 'no-reply@ems.local',
+        'from_name' => 'EMS',
+    ],
     'upload' => [
         'profile_dir' => __DIR__ . '/../storage/uploads/profiles',
         'profile_web_path' => '/files/profile/',
